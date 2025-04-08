@@ -2,6 +2,7 @@ package main
 
 import (
 	"blog-aggregator/internal/database"
+	"blog-aggregator/internal/middleware"
 	"database/sql"
 	_ "github.com/lib/pq"
 )
@@ -39,10 +40,11 @@ func main() {
 	localCommands.Register("reset", handlers.HandlerReset)
 	localCommands.Register("users", handlers.HandlerListUsers)
 	localCommands.Register("agg", handlers.HandlerAggregate)
-	localCommands.Register("addfeed", handlers.HandlerAddFeed)
 	localCommands.Register("feeds", handlers.HandlerListFeeds)
-	localCommands.Register("follow", handlers.HandlerFollow)
-	localCommands.Register("following", handlers.HandlerFollowing)
+
+	localCommands.Register("addfeed", middleware.LoggedIn(handlers.HandlerAddFeed))
+	localCommands.Register("follow", middleware.LoggedIn(handlers.HandlerFollow))
+	localCommands.Register("following", middleware.LoggedIn(handlers.HandlerFollowing))
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")

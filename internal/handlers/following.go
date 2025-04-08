@@ -2,18 +2,13 @@ package handlers
 
 import (
 	"blog-aggregator/internal/commands"
+	"blog-aggregator/internal/database"
 	"context"
 	"fmt"
 )
 
-func HandlerFollowing(state *commands.State, command commands.Command) error {
-	currentContext := context.Background()
-	user, err := state.DB.GetUser(currentContext, state.Cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user %s does not exist", state.Cfg.CurrentUserName)
-	}
-
-	feeds, err := state.DB.GetFeedFollowsForUser(currentContext, user.ID)
+func HandlerFollowing(state *commands.State, command commands.Command, user database.User) error {
+	feeds, err := state.DB.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
 	}
