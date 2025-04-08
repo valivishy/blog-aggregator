@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-func HandlerAddFeed(state *commands.State, command commands.Command) error {
+func HandlerFollow(state *commands.State, command commands.Command) error {
 	args := command.Args
-	if len(args) != 2 {
-		return fmt.Errorf("expected 2 arguments, got %d", len(args))
+	if len(args) != 1 {
+		return fmt.Errorf("expected 1 argument, got %d", len(args))
 	}
 
 	currentContext := context.Background()
@@ -21,25 +21,27 @@ func HandlerAddFeed(state *commands.State, command commands.Command) error {
 		return fmt.Errorf("user %s does not exist", state.Cfg.CurrentUserName)
 	}
 
-	feed, err := state.DB.CreateFeed(
+	url := args[0]
+	feed, err := state.DB.GetFeedByUrl(currentContext, url)
+	if err != nil {
+		return err
+	}
+
+	follow, err := state.DB.CreateFeedFollow(
 		currentContext,
-		database.CreateFeedParams{
+		database.CreateFeedFollowParams{
 			ID:        uuid.New(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
-			Name:      args[0],
-			Url:       args[1],
 			UserID:    user.ID,
+			FeedID:    feed.ID,
 		},
 	)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(feed)
+	fmt.Println(follow)
 
-	// We keep the second arg because we only need the URL
-	command.Args = command.Args[1:]
-
-	return HandlerFollow(state, command)
+	return nil
 }
