@@ -33,11 +33,13 @@ func main() {
 	localCommands := commands.Commands{
 		RegisteredCommands: make(map[string]func(*commands.State, commands.Command) error),
 	}
+
 	localCommands.Register("login", handlers.HandlerLogin)
 	localCommands.Register("register", handlers.HandlerRegister)
 	localCommands.Register("reset", handlers.HandlerReset)
 	localCommands.Register("users", handlers.HandlerListUsers)
 	localCommands.Register("agg", handlers.HandlerAggregate)
+	localCommands.Register("addfeed", handlers.HandlerAddFeed)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
