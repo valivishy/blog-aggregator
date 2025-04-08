@@ -40,6 +40,7 @@ func main() {
 	localCommands.Register("users", handlers.HandlerListUsers)
 	localCommands.Register("agg", handlers.HandlerAggregate)
 	localCommands.Register("addfeed", handlers.HandlerAddFeed)
+	localCommands.Register("feeds", handlers.HandlerListFeeds)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
