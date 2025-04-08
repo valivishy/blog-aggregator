@@ -1,25 +1,38 @@
 package main
 
 import (
+	"blog-aggregator/internal/commands"
 	"blog-aggregator/internal/config"
-	"fmt"
+	"blog-aggregator/internal/handlers"
+	"log"
+	"os"
 )
 
 func main() {
-	configFile, err := config.Read()
+	cfg, err := config.Read()
 	if err != nil {
-		panic(err)
+		log.Fatalf("error reading config: %v", err)
 	}
 
-	err = configFile.SetUser("RandomUser")
-	if err != nil {
-		panic(err)
+	programState := &commands.State{
+		Cfg: cfg,
 	}
 
-	configFile, err = config.Read()
-	if err != nil {
-		panic(err)
+	localCommands := commands.Commands{
+		RegisteredCommands: make(map[string]func(*commands.State, commands.Command) error),
+	}
+	localCommands.Register("login", handlers.HandlerLogin)
+
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: cli <command> [args...]")
+		return
 	}
 
-	fmt.Println(configFile)
+	cmdName := os.Args[1]
+	cmdArgs := os.Args[2:]
+
+	err = localCommands.Run(programState, commands.Command{Name: cmdName, Args: cmdArgs})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
