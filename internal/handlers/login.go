@@ -2,16 +2,21 @@ package handlers
 
 import (
 	"blog-aggregator/internal/commands"
+	"context"
 	"fmt"
 )
 
-func HandlerLogin(s *commands.State, cmd commands.Command) error {
-	if len(cmd.Args) != 1 {
-		return fmt.Errorf("usage: %s <name>", cmd.Name)
+func HandlerLogin(state *commands.State, command commands.Command) error {
+	if len(command.Args) != 1 {
+		return fmt.Errorf("usage: %s <name>", command.Name)
 	}
-	name := cmd.Args[0]
+	name := command.Args[0]
 
-	err := s.Cfg.SetUser(name)
+	if _, err := state.DB.GetUser(context.Background(), name); err != nil {
+		return fmt.Errorf("user %s doesn't exist", name)
+	}
+
+	err := state.Cfg.SetUser(name)
 	if err != nil {
 		return fmt.Errorf("couldn't set current user: %w", err)
 	}

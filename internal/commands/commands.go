@@ -2,6 +2,7 @@ package commands
 
 import (
 	"blog-aggregator/internal/config"
+	"blog-aggregator/internal/database"
 	"errors"
 )
 
@@ -12,6 +13,7 @@ type Command struct {
 
 type State struct {
 	Cfg *config.Config
+	DB  *database.Queries
 }
 
 type Commands struct {

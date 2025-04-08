@@ -1,6 +1,12 @@
 package main
 
 import (
+	"blog-aggregator/internal/database"
+	"database/sql"
+	_ "github.com/lib/pq"
+)
+
+import (
 	"blog-aggregator/internal/commands"
 	"blog-aggregator/internal/config"
 	"blog-aggregator/internal/handlers"
@@ -14,14 +20,23 @@ func main() {
 		log.Fatalf("error reading config: %v", err)
 	}
 
+	db, err := sql.Open("postgres", cfg.DbUrl)
+	if err != nil {
+		log.Fatalf("error connecting to the DB: %v", err)
+	}
+
 	programState := &commands.State{
 		Cfg: cfg,
+		DB:  database.New(db),
 	}
 
 	localCommands := commands.Commands{
 		RegisteredCommands: make(map[string]func(*commands.State, commands.Command) error),
 	}
 	localCommands.Register("login", handlers.HandlerLogin)
+	localCommands.Register("register", handlers.HandlerRegister)
+	localCommands.Register("reset", handlers.HandlerReset)
+	localCommands.Register("users", handlers.HandlerListUsers)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
