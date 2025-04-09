@@ -45,6 +45,7 @@ func main() {
 	localCommands.Register("addfeed", middleware.LoggedIn(handlers.HandlerAddFeed))
 	localCommands.Register("follow", middleware.LoggedIn(handlers.HandlerFollow))
 	localCommands.Register("following", middleware.LoggedIn(handlers.HandlerFollowing))
+	localCommands.Register("unfollow", middleware.LoggedIn(handlers.HandlerUnfollow))
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
