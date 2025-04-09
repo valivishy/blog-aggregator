@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"blog-aggregator/internal/commands"
+	"blog-aggregator/internal/database"
 	"blog-aggregator/internal/rss"
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"time"
 )
+
+const layout = "Mon, 02 Jan 2006 15:04:05 -0700"
 
 func HandlerAggregate(state *commands.State, command commands.Command) error {
 	args := command.Args
@@ -39,19 +43,47 @@ func scrapeFeeds(state *commands.State) error {
 		return err
 	}
 
-	return scrapeFeed(feed.Url)
+	return scrapeFeed(feed, state)
 }
 
-func scrapeFeed(feedUrl string) error {
-	feed, err := rss.FetchFeed(context.Background(), feedUrl)
+func scrapeFeed(dbFeed database.Feed, state *commands.State) error {
+	feed, err := rss.FetchFeed(context.Background(), dbFeed.Url)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("Fetched feed %s:\n", feed.Channel.Title)
+
 	for _, item := range feed.Channel.Item {
-		fmt.Printf(" * %s:\n", item.Title)
+		if err := savePost(item, dbFeed.ID, state); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func savePost(item rss.Item, feedId uuid.UUID, state *commands.State) error {
+	currentContext := context.Background()
+
+	publishedAt, err := time.Parse(layout, item.PubDate)
+	if err != nil {
+		return err
+	}
+
+	_, err = state.DB.CreatePost(
+		currentContext,
+		database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Description,
+			PublishedAt: publishedAt,
+			FeedID:      feedId,
+		},
+	)
+
+	return err
 }
